@@ -1,0 +1,155 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kompose.cmd: kompose convert -o k8s.deployment.yml
+      kompose.version: 1.16.0 (0c01309)
+    creationTimestamp: null
+    labels:
+      io.kompose.service: tasklist-db
+    name: tasklist-db
+  spec:
+    ports:
+    - name: "27017"
+      port: 27017
+      targetPort: 27017
+    selector:
+      io.kompose.service: tasklist-db
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kompose.cmd: kompose convert -o k8s.deployment.yml
+      kompose.version: 1.16.0 (0c01309)
+    creationTimestamp: null
+    labels:
+      io.kompose.service: tasklist-service
+    name: tasklist-service
+  spec:
+    ports:
+    - name: "9020"
+      port: 9020
+      targetPort: 9020
+    selector:
+      io.kompose.service: tasklist-service
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kompose.cmd: kompose convert -o k8s.deployment.yml
+      kompose.version: 1.16.0 (0c01309)
+    creationTimestamp: null
+    labels:
+      io.kompose.service: tasklist-web
+    name: tasklist-web
+  spec:
+    type: LoadBalancer
+    ports:
+    - name: "80"
+      port: 80
+      targetPort: 80
+    selector:
+      io.kompose.service: tasklist-web
+  status:
+    loadBalancer: {}
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+      kompose.cmd: kompose convert -o k8s.deployment.yml
+      kompose.version: 1.16.0 (0c01309)
+    creationTimestamp: null
+    labels:
+      io.kompose.service: tasklist-db
+    name: tasklist-db
+  spec:
+    replicas: 1
+    strategy: {}
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          io.kompose.service: tasklist-db
+      spec:
+        containers:
+        - image: mongo
+          name: tasklist-db
+          ports:
+          - containerPort: 27017
+          resources: {}
+        restartPolicy: Always
+  status: {}
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+      kompose.cmd: kompose convert -o k8s.deployment.yml
+      kompose.version: 1.16.0 (0c01309)
+    creationTimestamp: null
+    labels:
+      io.kompose.service: tasklist-service
+    name: tasklist-service
+  spec:
+    replicas: 1
+    strategy: {}
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          io.kompose.service: tasklist-service
+      spec:
+        containers:
+        - env:
+          - name: ASPNETCORE_ENVIRONMENT
+            value: Production
+          - name: ASPNETCORE_URLS
+            value: http://*:9020
+          - name: mongo__database
+            value: tasklist
+          - name: mongo__server__host
+            value: tasklist-db
+          - name: mongo__server__port
+            value: "27017"
+          image: daxnet/tasklist-service
+          name: tasklist-service
+          ports:
+          - containerPort: 9020
+          resources: {}
+        restartPolicy: Always
+  status: {}
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+      kompose.cmd: kompose convert -o k8s.deployment.yml
+      kompose.version: 1.16.0 (0c01309)
+    creationTimestamp: null
+    labels:
+      io.kompose.service: tasklist-web
+    name: tasklist-web
+  spec:
+    replicas: 1
+    strategy: {}
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          io.kompose.service: tasklist-web
+      spec:
+        containers:
+        - image: daxnet/tasklist-web
+          name: tasklist-web
+          ports:
+          - containerPort: 80
+          resources: {}
+        restartPolicy: Always
+  status: {}
+kind: List
+metadata: {}
+
